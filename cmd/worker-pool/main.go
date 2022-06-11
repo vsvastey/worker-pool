@@ -15,11 +15,15 @@ func main() {
 	t2 := task.NewSleepTask(10*time.Second)
 	t3 := task.NewSleepTask(5*time.Second)
 	t4 := task.NewSleepTask(4*time.Second)
+	t5 := task.NewCopyFileTask(task.CopyFileConfig{
+		Source:      "/Users/vsokolov/tmp/1/file.data",
+		Destination: "/Users/vsokolov/tmp/2/file2.data",
+	})
 	w1 := worker.NewSimpleWorker("worker1")
 	w2 := worker.NewSimpleWorker("worker2")
 
 	workers := []worker.Worker{w1, w2}
-	tasks := []task.Task{t1, t2, t3, t4}
+	tasks := []task.Task{t1, t2, t3, t4, t5}
 	tasksChan := make(chan task.Task)
 
 	wg := sync.WaitGroup{}
