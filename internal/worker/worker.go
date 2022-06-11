@@ -1,6 +1,9 @@
 package worker
 
-import "github.com/Vastey/worker-pool/internal/task"
+import (
+	"github.com/Vastey/worker-pool/internal/task"
+	"sync"
+)
 
 type Status struct {
 	ID string
@@ -9,6 +12,7 @@ type Status struct {
 }
 
 type Worker interface {
-	RunTask(task task.Task)
 	Status() <-chan Status
+	Work(pool chan chan task.Task, wg *sync.WaitGroup)
+	Stop()
 }

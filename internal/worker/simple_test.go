@@ -24,16 +24,23 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 		return ch
 	}).Times(1)
 
+	pool := make(chan chan task.Task)
+
 	w := NewSimpleWorker("test")
 	wg := sync.WaitGroup{}
 	wg.Add(1)
+	go w.Work(pool, &wg)
+
 	go func() {
-		w.RunTask(task1)
-		wg.Done()
+		ch := <-pool
+		ch <- task1
+		ch = <-pool
 	}()
+
 	go func() {
 		for range w.Status(){}
 	}()
+
 	wg.Wait()
 	w.Stop()
 }

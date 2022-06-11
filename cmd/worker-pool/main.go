@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Vastey/worker-pool/internal/dispatcher"
 	"github.com/Vastey/worker-pool/internal/progressbar"
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/Vastey/worker-pool/internal/worker"
@@ -10,20 +11,21 @@ import (
 )
 
 func main() {
-	t1 := task.NewSleepTask(8*time.Second)
+	t1 := task.NewSleepTask(2*time.Second)
 	t2 := task.NewSleepTask(10*time.Second)
+	t3 := task.NewSleepTask(5*time.Second)
+	t4 := task.NewSleepTask(4*time.Second)
 	w1 := worker.NewSimpleWorker("worker1")
 	w2 := worker.NewSimpleWorker("worker2")
+
+	workers := []worker.Worker{w1, w2}
+	tasks := []task.Task{t1, t2, t3, t4}
+	tasksChan := make(chan task.Task)
+
 	wg := sync.WaitGroup{}
-	wg.Add(2)
-	go func() {
-		w1.RunTask(t1)
-		wg.Done()
-	}()
-	go func() {
-		w2.RunTask(t2)
-		wg.Done()
-	}()
+	d := dispatcher.NewDispatcher(workers, tasksChan, &wg)
+	go d.Dispatch()
+
 	pb1 := progressbar.NewProgressBar()
 	pb2 := progressbar.NewProgressBar()
 
@@ -52,7 +54,15 @@ func main() {
 			fmt.Println(line2)
 		}
 	}()
+
+
+
+	for _, t := range tasks {
+		wg.Add(1)
+		tasksChan <- t
+	}
 	wg.Wait()
+
 	done <- struct{}{}
 
 }
