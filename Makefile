@@ -8,7 +8,7 @@ $(BINDIR)/worker-pool:
 	go build -o $@ ./cmd/worker-pool
 
 .PHONY: test
-test:
+test: mocks
 	go test ./...
 
 .PHONY: mocks
