@@ -17,3 +17,6 @@ bin/
 
 #IDE
 .idea/
+
+# mock files
+*_mock.go

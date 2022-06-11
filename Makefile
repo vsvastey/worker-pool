@@ -10,3 +10,10 @@ $(BINDIR)/worker-pool:
 .PHONY: test
 test:
 	go test ./...
+
+.PHONY: mocks
+mocks: task-mock
+
+.PHONY: task-mock
+task-mock:
+	mockgen -package=task -source=internal/task/task.go -destination=internal/task/task_mock.go
