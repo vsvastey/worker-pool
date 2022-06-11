@@ -36,17 +36,10 @@ func TestSleepTaskUpdatesProgress(t *testing.T) {
 	assert.Equal(t, 100, status.Progress)
 }
 
-func TestSleepTaskUpdatesState(t *testing.T) {
-	interval := 10 * time.Millisecond
+func TestSleepTaskHasName(t *testing.T) {
+	interval := 100 * time.Millisecond
 	task := NewSleepTask(interval)
+	name := task.Name()
+	assert.Equal(t, "sleep 100ms", name)
 
-	ch := task.Do()
-
-	var status Status
-	for status = range ch {
-		if status.Progress < 100 {
-			assert.Equal(t, INPROGRESS_STATE, status.State)
-		}
-	}
-	assert.Equal(t, DONE_STATE, status.State)
 }

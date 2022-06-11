@@ -12,16 +12,16 @@ type ProgressBar struct {
 	mu sync.Mutex
 }
 
-func NewProgressBar(caption string) *ProgressBar {
+func NewProgressBar() *ProgressBar {
 	return &ProgressBar{
-		caption: caption,
 		mu: sync.Mutex{},
 	}
 }
 
-func (pb *ProgressBar) Set(value int) {
+func (pb *ProgressBar) Set(caption string, value int) {
 	pb.mu.Lock()
 	defer pb.mu.Unlock()
+	pb.caption = caption
 	pb.cur = value
 }
 

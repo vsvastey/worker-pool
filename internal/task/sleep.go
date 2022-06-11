@@ -1,6 +1,7 @@
 package task
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -23,13 +24,17 @@ func (st *SleepTask) Do() <-chan Status {
 			select {
 			case <-step.C:
 				st.progress += 1
-				res <- Status{State: INPROGRESS_STATE, Progress: st.progress}
+				res <- Status{Progress: st.progress}
 			case <-timeout:
-				res <- Status{State: DONE_STATE, Progress: 100}
+				res <- Status{Progress: 100}
 				close(res)
 				return
 			}
 		}
 	}()
 	return res
+}
+
+func (st SleepTask) Name() string {
+	return fmt.Sprintf("sleep %v", st.total)
 }
