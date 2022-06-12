@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	Tasks []*task.Config `yaml:"tasks"`
+	WorkerCount int            `yaml:"worker_count"`
+	Tasks       []*task.Config `yaml:"tasks"`
 }
 
-func getTaskConfigsFromFile(filename string) ([]*task.Config, error) {
+func getConfigFromFile(filename string) (*Config, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("read file %s", filename))
@@ -22,5 +23,5 @@ func getTaskConfigsFromFile(filename string) ([]*task.Config, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("unmarshal file %s content", filename))
 	}
-	return config.Tasks, nil
+	return &config, nil
 }

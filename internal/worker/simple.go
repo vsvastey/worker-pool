@@ -6,13 +6,13 @@ import (
 )
 
 type SimpleWorker struct {
-	ID string
-	taskChan chan task.Task
+	ID         string
+	taskChan   chan task.Task
 	statusChan chan Status
-	stopChan chan struct{}
+	stopChan   chan struct{}
 }
 
-func NewSimpleWorker(name string) *SimpleWorker {
+func NewSimpleWorker(name string) (*SimpleWorker, error) {
 	newStatus := Status{
 		ID:       name,
 		Task:     "idle",
@@ -23,14 +23,14 @@ func NewSimpleWorker(name string) *SimpleWorker {
 		statusChan <- newStatus
 	}()
 	return &SimpleWorker{
-		ID: name,
-		taskChan: make(chan task.Task),
+		ID:         name,
+		taskChan:   make(chan task.Task),
 		statusChan: statusChan,
-		stopChan: make(chan struct{}),
-	}
+		stopChan:   make(chan struct{}),
+	}, nil
 }
 
-func (sw SimpleWorker) Status() <-chan Status{
+func (sw SimpleWorker) Status() <-chan Status {
 	return sw.statusChan
 }
 
@@ -41,13 +41,13 @@ func (sw *SimpleWorker) Stop() {
 
 func (sw *SimpleWorker) runTask(task task.Task) {
 	workerStatus := Status{
-		ID: sw.ID,
-		Task: task.Name(),
+		ID:       sw.ID,
+		Task:     task.Name(),
 		Progress: 0,
 	}
 	sw.statusChan <- workerStatus
 	ch := task.Do()
-	for taskStatus := range ch{
+	for taskStatus := range ch {
 		workerStatus.Progress = taskStatus.Progress
 		sw.statusChan <- workerStatus
 	}
@@ -61,7 +61,7 @@ func (sw *SimpleWorker) Work(pool chan chan task.Task, wg *sync.WaitGroup) {
 	for {
 		select {
 		case t := <-sw.taskChan:
-		    sw.runTask(t)
+			sw.runTask(t)
 			pool <- sw.taskChan
 			if wg != nil {
 				wg.Done()

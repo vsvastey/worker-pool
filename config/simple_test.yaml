@@ -1,4 +1,5 @@
 ---
+worker_count: 3
 tasks:
   - type: sleep
     config:
@@ -18,5 +19,7 @@ tasks:
 
   - type: copy_file
     config:
-      source: /home/vsokolov/tmp/1/file.data
-      destination: /home/vsokolov/tmp/2/file2.data
+#      source: /home/vsokolov/tmp/1/file.data
+#      destination: /home/vsokolov/tmp/2/file2.data
+      source: /Users/vsokolov/tmp/1/file.data
+      destination: /Users/vsokolov/tmp/2/file2.data

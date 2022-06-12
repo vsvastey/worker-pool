@@ -12,66 +12,86 @@ import (
 )
 
 var (
-	tasksFilename string
+	configFilename string
 )
 
 func init() {
-	flag.StringVar(&tasksFilename, "tasks", "", "file contains list of tasks")
+	flag.StringVar(&configFilename, "config", "", "configuration")
+}
+
+type WorkerAndProgress struct {
+	worker worker.Worker
+	pb     *progressbar.ProgressBar
 }
 
 func main() {
 	flag.Parse()
 	queue := task_queue.NewTaskQueue()
 
-	taskConfigs, err := getTaskConfigsFromFile(tasksFilename)
+	config, err := getConfigFromFile(configFilename)
 	if err != nil {
 		panic(err)
 	}
 
 	taskFactory := task.DefaultFactory{}
-	for _, taskConfig := range taskConfigs {
+	for _, taskConfig := range config.Tasks {
 		t, err := taskFactory.CreateTask(taskConfig)
 		if err == nil {
 			queue.Enqueue(t)
 		}
 	}
 
-	w1 := worker.NewSimpleWorker("w1")
-	w2 := worker.NewSimpleWorker("w2")
+	wps := make([]*WorkerAndProgress, config.WorkerCount)
+	workers := make([]worker.Worker, config.WorkerCount)
+	for i := 0; i < config.WorkerCount; i++ {
+		w, err := worker.NewSimpleWorker(fmt.Sprintf("w%d", i))
+		if err != nil {
+			// TODO: log
+			continue
+		}
+		workers[i] = w
+		pb := progressbar.NewProgressBar()
+		wps[i] = &WorkerAndProgress{
+			worker: w,
+			pb:     pb,
+		}
+	}
 
-	workers := []worker.Worker{w1, w2}
 	tasksChan := make(chan task.Task)
 
 	wg := sync.WaitGroup{}
 	d := dispatcher.NewDispatcher(workers, tasksChan, &wg)
 	go d.Dispatch()
 
-	pb1 := progressbar.NewProgressBar()
-	pb2 := progressbar.NewProgressBar()
-
-	line1 := pb1.Draw()
-	line2 := pb2.Draw()
-	fmt.Println(line1)
-	fmt.Println(line2)
-
 	done := make(chan struct{})
+
+	for i := 0; i < len(wps); i++ {
+		fmt.Println(wps[i].pb.Draw())
+	}
 	go func() {
+		updated := make(chan struct{})
+		for i := 0; i < len(wps); i++ {
+			go func(wp *WorkerAndProgress) {
+				for st := range wp.worker.Status() {
+					wp.pb.Set(fmt.Sprintf("%s - %s", st.ID, st.Task), st.Progress)
+					updated <- struct{}{}
+				}
+			}(wps[i])
+		}
+
 		for {
 			select {
-			case st1 := <-w1.Status():
-				pb1.Set(fmt.Sprintf("%s - %s", st1.ID, st1.Task), st1.Progress)
-			case st2 := <-w2.Status():
-				pb2.Set(fmt.Sprintf("%s - %s", st2.ID, st2.Task), st2.Progress)
+			case <-updated:
+				fmt.Print("\033[", len(wps), "F")
+				for i := 0; i < len(wps); i++ {
+					fmt.Println(wps[i].pb.Draw())
+				}
 			case <-done:
-				w1.Stop()
-				w2.Stop()
+				for i := 0; i < len(wps); i++ {
+					wps[i].worker.Stop()
+				}
 				return
 			}
-			fmt.Print("\033[2F")
-			line1 := pb1.Draw()
-			line2 := pb2.Draw()
-			fmt.Println(line1)
-			fmt.Println(line2)
 		}
 	}()
 
