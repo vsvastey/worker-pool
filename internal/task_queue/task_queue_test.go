@@ -16,25 +16,19 @@ func TestTaskQueue(t *testing.T) {
 
 	tq := NewTaskQueue()
 	// dequeue from empty queue
-	_, err := tq.Dequeue()
-	assert.NotNil(t, err)
+	res := tq.Dequeue()
+	assert.Nil(t, res)
 
-	err = tq.Enqueue(t1)
-	assert.Nil(t, err)
-	tmp, err := tq.Dequeue()
-	assert.Nil(t, err)
-	assert.Equal(t, t1, tmp)
+	tq.Enqueue(t1)
+	res = tq.Dequeue()
+	assert.Equal(t, t1, res)
 
-	err = tq.Enqueue(t1)
-	assert.Nil(t, err)
-	err = tq.Enqueue(t2)
-	assert.Nil(t, err)
+	tq.Enqueue(t1)
+	tq.Enqueue(t2)
 
-	tmp, err = tq.Dequeue()
-	assert.Nil(t, err)
-	assert.Equal(t, t1, tmp)
+	res = tq.Dequeue()
+	assert.Equal(t, t1, res)
 
-	tmp, err = tq.Dequeue()
-	assert.Nil(t, err)
-	assert.Equal(t, t2, tmp)
+	res = tq.Dequeue()
+	assert.Equal(t, t2, res)
 }

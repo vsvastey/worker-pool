@@ -5,25 +5,26 @@ import (
 	"github.com/Vastey/worker-pool/internal/dispatcher"
 	"github.com/Vastey/worker-pool/internal/progressbar"
 	"github.com/Vastey/worker-pool/internal/task"
+	"github.com/Vastey/worker-pool/internal/task_queue"
 	"github.com/Vastey/worker-pool/internal/worker"
 	"sync"
 	"time"
 )
 
 func main() {
-	t1 := task.NewSleepTask(2*time.Second)
-	t2 := task.NewSleepTask(10*time.Second)
-	t3 := task.NewSleepTask(5*time.Second)
-	t4 := task.NewSleepTask(4*time.Second)
-	t5 := task.NewCopyFileTask(task.CopyFileConfig{
+	queue := task_queue.NewTaskQueue()
+	queue.Enqueue(task.NewSleepTask(2*time.Second))
+	queue.Enqueue(task.NewSleepTask(10*time.Second))
+	queue.Enqueue(task.NewSleepTask(5*time.Second))
+	queue.Enqueue(task.NewSleepTask(4*time.Second))
+	queue.Enqueue(task.NewCopyFileTask(task.CopyFileConfig{
 		Source:      "/Users/vsokolov/tmp/1/file.data",
 		Destination: "/Users/vsokolov/tmp/2/file2.data",
-	})
-	w1 := worker.NewSimpleWorker("worker1")
-	w2 := worker.NewSimpleWorker("worker2")
+	}))
+	w1 := worker.NewSimpleWorker("w1")
+	w2 := worker.NewSimpleWorker("w2")
 
 	workers := []worker.Worker{w1, w2}
-	tasks := []task.Task{t1, t2, t3, t4, t5}
 	tasksChan := make(chan task.Task)
 
 	wg := sync.WaitGroup{}
@@ -60,10 +61,11 @@ func main() {
 	}()
 
 
-
-	for _, t := range tasks {
+	t := queue.Dequeue()
+	for t != nil {
 		wg.Add(1)
 		tasksChan <- t
+		t = queue.Dequeue()
 	}
 	wg.Wait()
 
