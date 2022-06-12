@@ -26,12 +26,13 @@ type WorkerAndProgress struct {
 
 func main() {
 	flag.Parse()
-	queue := task_queue.NewTaskQueue()
 
 	config, err := getConfigFromFile(configFilename)
 	if err != nil {
 		panic(err)
 	}
+
+	queue := task_queue.NewTaskQueue()
 
 	taskFactory := task.DefaultFactory{}
 	for _, taskConfig := range config.Tasks {
@@ -58,42 +59,13 @@ func main() {
 	}
 
 	tasksChan := make(chan task.Task)
-
 	wg := sync.WaitGroup{}
 	d := dispatcher.NewDispatcher(workers, tasksChan, &wg)
 	go d.Dispatch()
 
 	done := make(chan struct{})
 
-	for i := 0; i < len(wps); i++ {
-		fmt.Println(wps[i].pb.Draw())
-	}
-	go func() {
-		updated := make(chan struct{})
-		for i := 0; i < len(wps); i++ {
-			go func(wp *WorkerAndProgress) {
-				for st := range wp.worker.Status() {
-					wp.pb.Set(fmt.Sprintf("%s - %s", st.ID, st.Task), st.Progress)
-					updated <- struct{}{}
-				}
-			}(wps[i])
-		}
-
-		for {
-			select {
-			case <-updated:
-				fmt.Print("\033[", len(wps), "F")
-				for i := 0; i < len(wps); i++ {
-					fmt.Println(wps[i].pb.Draw())
-				}
-			case <-done:
-				for i := 0; i < len(wps); i++ {
-					wps[i].worker.Stop()
-				}
-				return
-			}
-		}
-	}()
+	go showProgress(wps, done)
 
 	t := queue.Dequeue()
 	for t != nil {
@@ -104,5 +76,4 @@ func main() {
 	wg.Wait()
 
 	done <- struct{}{}
-
 }
