@@ -5,13 +5,20 @@ import (
 	"time"
 )
 
+type SleepTaskConfig struct {
+	Duration time.Duration `yaml:"duration"`
+}
+
 type SleepTask struct {
 	total    time.Duration
 	progress int
 }
 
-func NewSleepTask(interval time.Duration) *SleepTask {
-	return &SleepTask{total: interval, progress: 0}
+func NewSleepTask(config *SleepTaskConfig) (*SleepTask, error) {
+	return &SleepTask{
+		total:    config.Duration,
+		progress: 0,
+	}, nil
 }
 
 func (st *SleepTask) Do() <-chan Status {

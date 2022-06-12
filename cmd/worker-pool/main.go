@@ -1,26 +1,57 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/Vastey/worker-pool/internal/dispatcher"
 	"github.com/Vastey/worker-pool/internal/progressbar"
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/Vastey/worker-pool/internal/task_queue"
 	"github.com/Vastey/worker-pool/internal/worker"
+	"github.com/pkg/errors"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"sync"
-	"time"
 )
 
+var (
+	tasksFilename string
+)
+
+func init() {
+	flag.StringVar(&tasksFilename, "tasks", "", "file contains list of tasks")
+}
+
+func getTaskConfigsFromFile(filename string) ([]*task.Config, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("read file %s", filename))
+	}
+	var config Config
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		return nil, errors.Wrap(err, fmt.Sprintf("unmarshal file %s content", filename))
+	}
+	return config.Tasks, nil
+}
+
 func main() {
+	flag.Parse()
 	queue := task_queue.NewTaskQueue()
-	queue.Enqueue(task.NewSleepTask(2*time.Second))
-	queue.Enqueue(task.NewSleepTask(10*time.Second))
-	queue.Enqueue(task.NewSleepTask(5*time.Second))
-	queue.Enqueue(task.NewSleepTask(4*time.Second))
-	queue.Enqueue(task.NewCopyFileTask(task.CopyFileConfig{
-		Source:      "/Users/vsokolov/tmp/1/file.data",
-		Destination: "/Users/vsokolov/tmp/2/file2.data",
-	}))
+
+	taskConfigs, err := getTaskConfigsFromFile(tasksFilename)
+	if err != nil {
+		panic(err)
+	}
+
+	taskFactory := task.DefaultFactory{}
+	for _, taskConfig := range taskConfigs {
+		t, err := taskFactory.CreateTask(taskConfig)
+		if err == nil {
+			queue.Enqueue(t)
+		}
+	}
+
 	w1 := worker.NewSimpleWorker("w1")
 	w2 := worker.NewSimpleWorker("w2")
 
@@ -59,7 +90,6 @@ func main() {
 			fmt.Println(line2)
 		}
 	}()
-
 
 	t := queue.Dequeue()
 	for t != nil {

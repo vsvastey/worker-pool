@@ -8,7 +8,9 @@ import (
 
 func TestSleepTaskWorksAtLeastAsLongAsInterval(t *testing.T) {
 	interval := 100 * time.Millisecond
-	task := NewSleepTask(interval)
+	config := SleepTaskConfig{Duration: interval}
+	task, err := NewSleepTask(&config)
+	assert.Nil(t, err)
 
 	start := time.Now()
 	ch := task.Do()
@@ -23,7 +25,9 @@ func TestSleepTaskWorksAtLeastAsLongAsInterval(t *testing.T) {
 
 func TestSleepTaskUpdatesProgress(t *testing.T) {
 	interval := 100 * time.Millisecond
-	task := NewSleepTask(interval)
+	config := SleepTaskConfig{Duration: interval}
+	task, err := NewSleepTask(&config)
+	assert.Nil(t, err)
 
 	ch := task.Do()
 
@@ -38,8 +42,10 @@ func TestSleepTaskUpdatesProgress(t *testing.T) {
 
 func TestSleepTaskHasName(t *testing.T) {
 	interval := 100 * time.Millisecond
-	task := NewSleepTask(interval)
+	config := SleepTaskConfig{Duration: interval}
+	task, err := NewSleepTask(&config)
+	assert.Nil(t, err)
+
 	name := task.Name()
 	assert.Equal(t, "sleep 100ms", name)
-
 }

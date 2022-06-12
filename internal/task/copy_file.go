@@ -7,21 +7,25 @@ import (
 	"path/filepath"
 )
 
-type CopyFileConfig struct {
-	Source string
-	Destination string
+type CopyFileTaskConfig struct {
+	Source      string `yaml:"source"`
+	Destination string `yaml:"destination"`
 }
 
 type CopyFileTask struct {
-	config CopyFileConfig
+	src string
+	dst string
 }
 
-func NewCopyFileTask(config CopyFileConfig) *CopyFileTask {
-	return &CopyFileTask{config: config}
+func NewCopyFileTask(config *CopyFileTaskConfig) (*CopyFileTask, error) {
+	return &CopyFileTask{
+		src: config.Source,
+		dst: config.Destination,
+	}, nil
 }
 
 func (cf CopyFileTask) Name() string {
-	return fmt.Sprintf("copy %s", filepath.Base(cf.config.Source))
+	return fmt.Sprintf("copy %s", filepath.Base(cf.src))
 }
 
 func (cf *CopyFileTask) Do() <-chan Status {
@@ -33,12 +37,12 @@ func (cf *CopyFileTask) Do() <-chan Status {
 			close(res)
 		}()
 
-		src, err := os.Open(cf.config.Source)
+		src, err := os.Open(cf.src)
 		if err != nil {
 			return
 		}
 		info, err := src.Stat()
-		dst, err := os.Create(cf.config.Destination)
+		dst, err := os.Create(cf.dst)
 		dstWithStatus := NewWriterWithStatus(dst, info.Size(), res)
 		if err != nil {
 			return
