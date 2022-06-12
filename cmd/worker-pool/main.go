@@ -8,9 +8,6 @@ import (
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/Vastey/worker-pool/internal/task_queue"
 	"github.com/Vastey/worker-pool/internal/worker"
-	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
-	"io/ioutil"
 	"sync"
 )
 
@@ -20,19 +17,6 @@ var (
 
 func init() {
 	flag.StringVar(&tasksFilename, "tasks", "", "file contains list of tasks")
-}
-
-func getTaskConfigsFromFile(filename string) ([]*task.Config, error) {
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("read file %s", filename))
-	}
-	var config Config
-	err = yaml.Unmarshal(data, &config)
-	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("unmarshal file %s content", filename))
-	}
-	return config.Tasks, nil
 }
 
 func main() {
