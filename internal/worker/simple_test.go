@@ -3,6 +3,7 @@ package worker
 import (
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"sync"
 	"testing"
 )
@@ -13,7 +14,7 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 
 	task1 := task.NewMockTask(ctrl)
 	task1.EXPECT().Name().Return("task1").Times(1)
-	task1.EXPECT().Do().DoAndReturn(func() <-chan task.Status{
+	task1.EXPECT().Do().DoAndReturn(func() <-chan task.Status {
 		ch := make(chan task.Status)
 		go func() {
 			ch <- task.Status{Progress: 10}
@@ -26,7 +27,8 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 
 	pool := make(chan chan task.Task)
 
-	w := NewSimpleWorker("test")
+	w, err := NewSimpleWorker("test")
+	assert.Nil(t, err)
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go w.Work(pool, &wg)
@@ -38,7 +40,8 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 	}()
 
 	go func() {
-		for range w.Status(){}
+		for range w.Status() {
+		}
 	}()
 
 	wg.Wait()
