@@ -7,25 +7,42 @@ import (
 	"path/filepath"
 )
 
+/* TODO: consider using https://github.com/spf13/afero
+to abstract a FileSystem
+and have an ability to unit test CopyFileTask
+*/
+
+// CopyFileTaskConfig is a configuration of CopyFileTask
 type CopyFileTaskConfig struct {
-	Source      string `yaml:"source"`
+	// Source is a name of a file to copy from
+	Source string `yaml:"source"`
+	// Destination is a name of a file to copy to
 	Destination string `yaml:"destination"`
 }
 
+// CopyFileTask copies src file to dst
+// src file must exist
+// dst path must exist
 type CopyFileTask struct {
+	// src is a source filename
 	src string
+	// dst is a destination filename
 	dst string
+	// name is a description of the task
+	name string
 }
 
+// NewCopyFileTask is a constructor of CopyFileTask
 func NewCopyFileTask(config *CopyFileTaskConfig) (*CopyFileTask, error) {
 	return &CopyFileTask{
-		src: config.Source,
-		dst: config.Destination,
+		src:  config.Source,
+		dst:  config.Destination,
+		name: fmt.Sprintf("copy %s", filepath.Base(config.Source)),
 	}, nil
 }
 
 func (cf CopyFileTask) Name() string {
-	return fmt.Sprintf("copy %s", filepath.Base(cf.src))
+	return cf.name
 }
 
 func (cf *CopyFileTask) Do() <-chan Status {
@@ -42,11 +59,15 @@ func (cf *CopyFileTask) Do() <-chan Status {
 			return
 		}
 		info, err := src.Stat()
-		dst, err := os.Create(cf.dst)
-		dstWithStatus := NewWriterWithStatus(dst, info.Size(), res)
 		if err != nil {
 			return
 		}
+		dst, err := os.Create(cf.dst)
+		if err != nil {
+			return
+		}
+		dstWithStatus := NewWriterWithStatus(dst, info.Size(), res)
+
 		_, err = io.Copy(dstWithStatus, src)
 	}()
 	return res

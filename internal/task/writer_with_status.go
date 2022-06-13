@@ -1,19 +1,22 @@
 package task
 
 import (
-	"os"
+	"io"
 	"sync"
 )
 
+// WriterWithStatus is an implementation of Writer interface
+// on top of existing io.Writer
+// that updates a statusChan with current progress
 type WriterWithStatus struct {
-	wp *os.File
-	written int64
+	wp         io.Writer
+	written    int64
 	statusChan chan<- Status
-	mu sync.Mutex
-	total int64
+	mu         sync.Mutex
+	total      int64
 }
 
-func NewWriterWithStatus(wp *os.File, size int64, ch chan<- Status) *WriterWithStatus {
+func NewWriterWithStatus(wp io.Writer, size int64, ch chan<- Status) *WriterWithStatus {
 	return &WriterWithStatus{wp: wp, total: size, statusChan: ch}
 }
 
@@ -25,4 +28,3 @@ func (ws *WriterWithStatus) Write(p []byte) (n int, err error) {
 	ws.statusChan <- Status{Progress: int(100 * ws.written / ws.total)}
 	return n, err
 }
-

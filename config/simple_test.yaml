@@ -17,9 +17,9 @@ tasks:
     config:
       duration: 4s
 
-#  - type: copy_file
-#    config:
-##      source: /home/vsokolov/tmp/1/file.data
-##      destination: /home/vsokolov/tmp/2/file2.data
-#      source: /Users/vsokolov/tmp/1/file.data
-#      destination: /Users/vsokolov/tmp/2/file2.data
+  - type: copy_file
+    config:
+#      source: /home/vsokolov/tmp/1/file.data
+#      destination: /home/vsokolov/tmp/2/file2.data
+      source: /Users/vsokolov/tmp/1/file.data
+      destination: /Users/vsokolov/tmp/2/file2.data

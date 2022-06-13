@@ -5,19 +5,28 @@ import (
 	"time"
 )
 
+// SleepTaskConfig is a configuration of SleepTask
 type SleepTaskConfig struct {
+	// Duration is a time.Duration interval that must be slept
 	Duration time.Duration `yaml:"duration"`
 }
 
+// SleepTask is a task that does nothing (sleeps) provided amount of time
 type SleepTask struct {
-	total    time.Duration
+	// total is a time interval that must be slept
+	total time.Duration
+	// progress is how much percent of total has been already slept
 	progress int
+	// name is a task description
+	name string
 }
 
+// NewSleepTask is a constructor of SleepTask
 func NewSleepTask(config *SleepTaskConfig) (*SleepTask, error) {
 	return &SleepTask{
 		total:    config.Duration,
 		progress: 0,
+		name:     fmt.Sprintf("sleep %v", config.Duration),
 	}, nil
 }
 
@@ -43,5 +52,5 @@ func (st *SleepTask) Do() <-chan Status {
 }
 
 func (st SleepTask) Name() string {
-	return fmt.Sprintf("sleep %v", st.total)
+	return st.name
 }
