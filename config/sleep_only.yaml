@@ -1,0 +1,18 @@
+---
+worker_count: 3
+tasks:
+  - type: sleep
+    config:
+      duration: 2s
+
+  - type: sleep
+    config:
+      duration: 10s
+
+  - type: sleep
+    config:
+      duration: 5s
+
+  - type: sleep
+    config:
+      duration: 4s
