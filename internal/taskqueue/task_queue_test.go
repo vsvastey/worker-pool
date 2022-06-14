@@ -1,4 +1,4 @@
-package task_queue
+package taskqueue
 
 import (
 	"github.com/Vastey/worker-pool/internal/task"
