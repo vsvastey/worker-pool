@@ -8,6 +8,14 @@ import (
 	"testing"
 )
 
+type MockTaskFactory struct {
+	taskToReturn task.Task
+}
+
+func (mtf MockTaskFactory) CreateTask(taskConfig *task.Config) (task.Task, error) {
+	return mtf.taskToReturn, nil
+}
+
 func TestSimpleWorkerRunsTask(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -25,17 +33,20 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 		return ch
 	}).Times(1)
 
-	taskChan := make(chan task.Task)
+	taskFactory := MockTaskFactory{
+		taskToReturn: task1,
+	}
+	taskConfigChan := make(chan *task.Config)
 
 	wg := sync.WaitGroup{}
-	w, err := NewSimpleWorker("test", taskChan)
+	w, err := NewSimpleWorker("test", taskFactory, taskConfigChan)
 	assert.Nil(t, err)
 
 	wg.Add(1)
 	go w.Work(&wg)
 
 	go func() {
-		taskChan <- task1
+		taskConfigChan <- &task.Config{}
 	}()
 
 	go func() {

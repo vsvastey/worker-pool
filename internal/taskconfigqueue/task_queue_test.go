@@ -1,22 +1,18 @@
-package task_queue
+package taskconfigqueue
 
 import (
 	"github.com/Vastey/worker-pool/internal/task"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-func TestTaskQueue(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestTaskConfigQueue(t *testing.T) {
+	t1 := &task.Config{Type: "t1"}
+	t2 := &task.Config{Type: "t2"}
+	t3 := &task.Config{Type: "t3"}
+	t4 := &task.Config{Type: "t4"}
 
-	t1 := task.NewMockTask(ctrl)
-	t2 := task.NewMockTask(ctrl)
-	t3 := task.NewMockTask(ctrl)
-	t4 := task.NewMockTask(ctrl)
-
-	tq := NewTaskQueue(2)
+	tq := NewTaskConfigQueue(2)
 	assert.Equal(t, 2, len(tq.arr))
 	// dequeue from empty queue
 	res := tq.Dequeue()
@@ -46,7 +42,7 @@ func TestTaskQueue(t *testing.T) {
 	assert.Equal(t, 4, len(tq.arr))
 }
 
-func TestTaskQueueCapacityIsPowerOfTwo(t *testing.T) {
+func TestTaskConfigQueueCapacityIsPowerOfTwo(t *testing.T) {
 	cases := map[int]int{
 		0:  2,
 		2:  2,
@@ -58,7 +54,7 @@ func TestTaskQueueCapacityIsPowerOfTwo(t *testing.T) {
 		15: 16,
 	}
 	for k, v := range cases {
-		tq := NewTaskQueue(k)
+		tq := NewTaskConfigQueue(k)
 		assert.Equal(t, v, len(tq.arr))
 	}
 }

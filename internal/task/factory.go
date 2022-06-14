@@ -21,7 +21,7 @@ type Factory interface {
 
 type DefaultFactory struct{}
 
-func (df *DefaultFactory) CreateTask(config *Config) (Task, error) {
+func (df DefaultFactory) CreateTask(config *Config) (Task, error) {
 	switch config.Type {
 	case sleep:
 		var payload SleepTaskConfig
