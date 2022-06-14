@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/Vastey/worker-pool/internal/dispatcher"
 	"github.com/Vastey/worker-pool/internal/progressbar"
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/Vastey/worker-pool/internal/task_queue"
@@ -33,19 +32,23 @@ func main() {
 	}
 
 	queue := task_queue.NewTaskQueue(len(config.Tasks))
+	tasksChan := make(chan task.Task)
 
 	taskFactory := task.DefaultFactory{}
 	for _, taskConfig := range config.Tasks {
 		t, err := taskFactory.CreateTask(taskConfig)
 		if err == nil {
 			queue.Enqueue(t)
+		} else {
+			// TODO: log
 		}
 	}
+	wg := sync.WaitGroup{}
 
 	wps := make([]*WorkerAndProgress, config.WorkerCount)
 	workers := make([]worker.Worker, config.WorkerCount)
 	for i := 0; i < config.WorkerCount; i++ {
-		w, err := worker.NewSimpleWorker(fmt.Sprintf("w%d", i))
+		w, err := worker.NewSimpleWorker(fmt.Sprintf("w%d", i), tasksChan)
 		if err != nil {
 			// TODO: log
 			continue
@@ -56,12 +59,8 @@ func main() {
 			worker: w,
 			pb:     pb,
 		}
+		go w.Work(&wg)
 	}
-
-	tasksChan := make(chan task.Task)
-	wg := sync.WaitGroup{}
-	d := dispatcher.NewDispatcher(workers, tasksChan, &wg)
-	go d.Dispatch()
 
 	done := make(chan struct{})
 

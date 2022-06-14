@@ -25,18 +25,17 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 		return ch
 	}).Times(1)
 
-	pool := make(chan chan task.Task)
+	taskChan := make(chan task.Task)
 
-	w, err := NewSimpleWorker("test")
-	assert.Nil(t, err)
 	wg := sync.WaitGroup{}
+	w, err := NewSimpleWorker("test", taskChan)
+	assert.Nil(t, err)
+
 	wg.Add(1)
-	go w.Work(pool, &wg)
+	go w.Work(&wg)
 
 	go func() {
-		ch := <-pool
-		ch <- task1
-		ch = <-pool
+		taskChan <- task1
 	}()
 
 	go func() {

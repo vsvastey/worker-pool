@@ -7,12 +7,12 @@ import (
 
 type SimpleWorker struct {
 	ID         string
-	taskChan   chan task.Task
+	tasks      <-chan task.Task
 	statusChan chan Status
 	stopChan   chan struct{}
 }
 
-func NewSimpleWorker(name string) (*SimpleWorker, error) {
+func NewSimpleWorker(name string, tasks <-chan task.Task) (*SimpleWorker, error) {
 	newStatus := Status{
 		ID:       name,
 		Task:     "idle",
@@ -24,7 +24,7 @@ func NewSimpleWorker(name string) (*SimpleWorker, error) {
 	}()
 	return &SimpleWorker{
 		ID:         name,
-		taskChan:   make(chan task.Task),
+		tasks:      tasks,
 		statusChan: statusChan,
 		stopChan:   make(chan struct{}),
 	}, nil
@@ -56,17 +56,14 @@ func (sw *SimpleWorker) runTask(task task.Task) {
 	sw.statusChan <- workerStatus
 }
 
-func (sw *SimpleWorker) Work(pool chan chan task.Task, wg *sync.WaitGroup) {
-	pool <- sw.taskChan
+func (sw *SimpleWorker) Work(wg *sync.WaitGroup) {
 	for {
 		select {
-		case t := <-sw.taskChan:
+		case t := <-sw.tasks:
 			sw.runTask(t)
-			pool <- sw.taskChan
 			if wg != nil {
 				wg.Done()
 			}
-
 		case <-sw.stopChan:
 			return
 		}
