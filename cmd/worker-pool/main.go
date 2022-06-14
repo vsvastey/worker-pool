@@ -32,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	queue := task_queue.NewTaskQueue()
+	queue := task_queue.NewTaskQueue(len(config.Tasks))
 
 	taskFactory := task.DefaultFactory{}
 	for _, taskConfig := range config.Tasks {
