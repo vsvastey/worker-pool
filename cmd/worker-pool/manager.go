@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Vastey/worker-pool/internal/progressbar"
 	"github.com/Vastey/worker-pool/internal/task"
-	"github.com/Vastey/worker-pool/internal/taskqueue"
+	"github.com/Vastey/worker-pool/internal/taskconfigqueue"
 	"github.com/Vastey/worker-pool/internal/util"
 	"github.com/Vastey/worker-pool/internal/worker"
 	"sync"
@@ -16,36 +16,32 @@ type WorkerAndProgress struct {
 }
 
 type Manager struct {
-	wps         []*WorkerAndProgress
-	wg          *sync.WaitGroup
-	taskQueue   *taskqueue.TaskQueue
-	done        chan struct{}
-	taskChan    chan task.Task
-	taskFactory task.Factory
+	wps             []*WorkerAndProgress
+	wg              *sync.WaitGroup
+	taskConfigQueue *taskconfigqueue.TaskConfigQueue
+	done            chan struct{}
+	taskConfigChan  chan *task.Config
+	taskFactory     task.Factory
 }
 
 func NewManager(taskFactory task.Factory) *Manager {
 	return &Manager{
-		wps:         []*WorkerAndProgress{},
-		wg:          &sync.WaitGroup{},
-		taskQueue:   taskqueue.NewTaskQueue(8),
-		done:        make(chan struct{}),
-		taskChan:    make(chan task.Task),
-		taskFactory: taskFactory,
+		wps:             []*WorkerAndProgress{},
+		wg:              &sync.WaitGroup{},
+		taskConfigQueue: taskconfigqueue.NewTaskConfigQueue(8),
+		done:            make(chan struct{}),
+		taskConfigChan:  make(chan *task.Config),
+		taskFactory:     taskFactory,
 	}
 }
 
 func (m *Manager) AddTask(taskConfig *task.Config) error {
-	t, err := m.taskFactory.CreateTask(taskConfig)
-	if err != nil {
-		return err
-	}
-	m.taskQueue.Enqueue(t)
+	m.taskConfigQueue.Enqueue(taskConfig)
 	return nil
 }
 
 func (m *Manager) AddWorker() error {
-	w, err := worker.NewSimpleWorker(util.RandomString(5), m.taskChan)
+	w, err := worker.NewSimpleWorker(util.RandomString(5), m.taskFactory, m.taskConfigChan)
 	if err != nil {
 		// TODO: log
 		return err
@@ -61,11 +57,11 @@ func (m *Manager) AddWorker() error {
 }
 
 func (m *Manager) Run() {
-	t := m.taskQueue.Dequeue()
-	for t != nil {
+	taskConfig := m.taskConfigQueue.Dequeue()
+	for taskConfig != nil {
 		m.wg.Add(1)
-		m.taskChan <- t
-		t = m.taskQueue.Dequeue()
+		m.taskConfigChan <- taskConfig
+		taskConfig = m.taskConfigQueue.Dequeue()
 	}
 	m.wg.Wait()
 	m.done <- struct{}{}

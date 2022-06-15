@@ -1,36 +1,36 @@
-package taskqueue
+package taskconfigqueue
 
 import (
 	"github.com/Vastey/worker-pool/internal/task"
 	"sync"
 )
 
-type TaskQueue struct {
-	arr  []task.Task
+type TaskConfigQueue struct {
+	arr  []*task.Config
 	mu   sync.Mutex
 	head int
 	tail int
 	size int
 }
 
-func NewTaskQueue(capacity int) *TaskQueue {
+func NewTaskConfigQueue(capacity int) *TaskConfigQueue {
 	powTwo := 2
 	for powTwo < capacity {
 		powTwo *= 2
 	}
-	return &TaskQueue{
-		arr: make([]task.Task, powTwo),
+	return &TaskConfigQueue{
+		arr: make([]*task.Config, powTwo),
 		mu:  sync.Mutex{},
 	}
 }
 
-func (tq *TaskQueue) Enqueue(t task.Task) {
+func (tq *TaskConfigQueue) Enqueue(taskConfig *task.Config) {
 	tq.mu.Lock()
 	defer tq.mu.Unlock()
 
 	if tq.size == len(tq.arr) {
 		oldLen := len(tq.arr)
-		newArr := make([]task.Task, tq.size*2)
+		newArr := make([]*task.Config, tq.size*2)
 		for i := 0; i < oldLen; i++ {
 			newArr[i] = tq.arr[(tq.head+i)%oldLen]
 		}
@@ -39,12 +39,12 @@ func (tq *TaskQueue) Enqueue(t task.Task) {
 		tq.arr = newArr
 		tq.size = oldLen + 1
 	}
-	tq.arr[tq.tail] = t
+	tq.arr[tq.tail] = taskConfig
 	tq.tail = (tq.tail + 1) % len(tq.arr)
 	tq.size += 1
 }
 
-func (tq *TaskQueue) Dequeue() task.Task {
+func (tq *TaskConfigQueue) Dequeue() *task.Config {
 	tq.mu.Lock()
 	defer tq.mu.Unlock()
 

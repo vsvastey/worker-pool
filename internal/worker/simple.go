@@ -2,17 +2,19 @@ package worker
 
 import (
 	"github.com/Vastey/worker-pool/internal/task"
+	"github.com/pkg/errors"
 	"sync"
 )
 
 type SimpleWorker struct {
-	ID         string
-	tasks      <-chan task.Task
-	statusChan chan Status
-	stopChan   chan struct{}
+	ID          string
+	taskConfigs <-chan *task.Config
+	statusChan  chan Status
+	stopChan    chan struct{}
+	taskFactory task.Factory
 }
 
-func NewSimpleWorker(name string, tasks <-chan task.Task) (*SimpleWorker, error) {
+func NewSimpleWorker(name string, taskFactory task.Factory, taskConfigs <-chan *task.Config) (*SimpleWorker, error) {
 	newStatus := Status{
 		ID:       name,
 		Task:     "idle",
@@ -23,10 +25,11 @@ func NewSimpleWorker(name string, tasks <-chan task.Task) (*SimpleWorker, error)
 		statusChan <- newStatus
 	}()
 	return &SimpleWorker{
-		ID:         name,
-		tasks:      tasks,
-		statusChan: statusChan,
-		stopChan:   make(chan struct{}),
+		ID:          name,
+		taskConfigs: taskConfigs,
+		statusChan:  statusChan,
+		stopChan:    make(chan struct{}),
+		taskFactory: taskFactory,
 	}, nil
 }
 
@@ -39,14 +42,18 @@ func (sw *SimpleWorker) Stop() {
 	close(sw.statusChan)
 }
 
-func (sw *SimpleWorker) runTask(task task.Task) {
+func (sw *SimpleWorker) runTask(taskConfig *task.Config) error {
+	t, err := sw.taskFactory.CreateTask(taskConfig)
+	if err != nil {
+		return errors.Wrap(err, "create task")
+	}
 	workerStatus := Status{
 		ID:       sw.ID,
-		Task:     task.Name(),
+		Task:     t.Name(),
 		Progress: 0,
 	}
 	sw.statusChan <- workerStatus
-	ch := task.Do()
+	ch := t.Do()
 	for taskStatus := range ch {
 		workerStatus.Progress = taskStatus.Progress
 		sw.statusChan <- workerStatus
@@ -54,13 +61,17 @@ func (sw *SimpleWorker) runTask(task task.Task) {
 	workerStatus.Task = "idle"
 	workerStatus.Progress = 0
 	sw.statusChan <- workerStatus
+	return nil
 }
 
 func (sw *SimpleWorker) Work(wg *sync.WaitGroup) {
 	for {
 		select {
-		case t := <-sw.tasks:
-			sw.runTask(t)
+		case t := <-sw.taskConfigs:
+			err := sw.runTask(t)
+			if err != nil {
+				//TODO: log
+			}
 			if wg != nil {
 				wg.Done()
 			}
