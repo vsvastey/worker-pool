@@ -5,3 +5,13 @@ tasks:
     config:
       source: /src/file1
       destination: /src/file2
+
+  - type: s3_upload
+    config:
+      filename: /src/to_s3
+      bucket: testbucket
+      name_in_bucket: e2e/test/uploaded.data
+      access_key_id: minio
+      secret_access_key: minio123
+      region:  us-east-1
+      endpoint: http://minio:9000

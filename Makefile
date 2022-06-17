@@ -31,6 +31,5 @@ $(BINDIR)/e2e-test:
 	@go build -race -o $@ ./test/e2e/
 
 .PHONY: e2e-test
-e2e-test: docker-worker-pool
-	docker-compose -f deployment/e2e-test/docker-compose.yaml up --exit-code-from test --abort-on-container-exit --build
-	-docker-compose -f deployment/e2e-test/docker-compose.yaml down
+e2e-test:
+	docker-compose -f deployment/e2e-test/docker-compose.yaml up --build
