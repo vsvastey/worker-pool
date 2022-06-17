@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/pkg/errors"
+
 	"github.com/Vastey/worker-pool/internal/progressbar"
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/Vastey/worker-pool/internal/taskconfigqueue"
@@ -45,8 +47,7 @@ func (m *Manager) AddTask(taskConfig *task.Config) error {
 func (m *Manager) AddWorker(ctx context.Context) error {
 	w, err := worker.NewSimpleWorker(util.RandomString(5), m.taskFactory, m.taskConfigChan)
 	if err != nil {
-		// TODO: log
-		return err
+		return errors.Wrap(err, "simple worker constructor")
 	}
 
 	pb := progressbar.NewProgressBar()

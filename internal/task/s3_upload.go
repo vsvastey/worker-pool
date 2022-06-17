@@ -2,12 +2,14 @@ package task
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"os"
-	"path/filepath"
+	log "github.com/sirupsen/logrus"
 )
 
 type S3UploadConfig struct {
@@ -66,15 +68,18 @@ func (ut *S3UploadTask) Do() <-chan Status {
 		}
 		sess, err := session.NewSession(awsConfig)
 		if err != nil {
+			log.Errorf("Error creating AWS session: %v", err)
 			return
 		}
 
 		src, err := os.Open(ut.filename)
 		if err != nil {
+			log.Errorf("Error opening file %s: %v", ut.filename, err)
 			return
 		}
 		info, err := src.Stat()
 		if err != nil {
+			log.Errorf("Error getting file %s info: %v", ut.filename, err)
 			return
 		}
 		reader := NewReaderWithStatus(src, info.Size(), res)
@@ -85,6 +90,9 @@ func (ut *S3UploadTask) Do() <-chan Status {
 			Key:    &ut.nameInBucket,
 			Body:   reader,
 		})
+		if err != nil {
+			log.Errorf("Error uploading file %s to S3: %v", ut.filename, err)
+		}
 	}()
 	return res
 }

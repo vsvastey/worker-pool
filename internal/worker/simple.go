@@ -4,6 +4,8 @@ import (
 	"context"
 	"sync"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/pkg/errors"
 )
@@ -72,7 +74,7 @@ func (sw *SimpleWorker) Work(ctx context.Context, wg *sync.WaitGroup) {
 		case t := <-sw.taskConfigs:
 			err := sw.runTask(t)
 			if err != nil {
-				//TODO: log
+				log.Errorf("Error running task: %v", err)
 			}
 			if wg != nil {
 				wg.Done()

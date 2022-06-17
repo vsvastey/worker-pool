@@ -5,6 +5,8 @@ import (
 	"flag"
 
 	"github.com/Vastey/worker-pool/internal/task"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -21,7 +23,7 @@ func main() {
 
 	config, err := getConfigFromFile(configFilename)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Error reading config file %s: %v", configFilename, err)
 	}
 
 	manager := NewManager(&task.DefaultFactory{})
@@ -29,14 +31,14 @@ func main() {
 	for i := 0; i < config.WorkerCount; i++ {
 		err := manager.AddWorker(ctx)
 		if err != nil {
-			// TODO: log
+			log.Errorf("Error adding a worker: %v", err)
 		}
 	}
 
 	for _, taskConfig := range config.Tasks {
 		err = manager.AddTask(taskConfig)
 		if err != nil {
-			//TODO: log
+			log.Errorf("Error adding a task: %v", err)
 		}
 	}
 

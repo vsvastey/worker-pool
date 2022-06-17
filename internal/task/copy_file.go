@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type CopyFileTaskConfig struct {
@@ -39,15 +41,27 @@ func (cf *CopyFileTask) Do() <-chan Status {
 
 		src, err := os.Open(cf.src)
 		if err != nil {
+			log.Errorf("Error opening file %s: %v", cf.src, err)
 			return
 		}
 		info, err := src.Stat()
-		dst, err := os.Create(cf.dst)
-		dstWithStatus := NewWriterWithStatus(dst, info.Size(), res)
 		if err != nil {
+			log.Errorf("Error on getting file %s information: %v", cf.src, err)
 			return
 		}
+
+		dst, err := os.Create(cf.dst)
+		if err != nil {
+			log.Errorf("Error creating file %s: %v", cf.dst, err)
+			return
+		}
+
+		dstWithStatus := NewWriterWithStatus(dst, info.Size(), res)
 		_, err = io.Copy(dstWithStatus, src)
+		if err != nil {
+			log.Errorf("Error copying file %s to file %s: %v", cf.src, cf.dst, err)
+			return
+		}
 	}()
 	return res
 }

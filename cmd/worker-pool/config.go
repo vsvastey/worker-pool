@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io/ioutil"
 
 	"github.com/Vastey/worker-pool/internal/task"
@@ -22,7 +21,7 @@ func getConfigFromFile(filename string) (*Config, error) {
 	var config Config
 	err = yaml.Unmarshal(data, &config)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("unmarshal file %s content", filename))
+		return nil, errors.Wrapf(err, "unmarshal file %s content", filename)
 	}
 	return &config, nil
 }
