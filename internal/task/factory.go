@@ -8,6 +8,7 @@ import (
 const (
 	sleep     = "sleep"
 	copy_file = "copy_file"
+	s3_upload = "s3_upload"
 )
 
 type Config struct {
@@ -31,6 +32,10 @@ func (df DefaultFactory) CreateTask(config *Config) (Task, error) {
 		var payload CopyFileTaskConfig
 		config.Config.Unmarshal(&payload)
 		return NewCopyFileTask(&payload)
+	case s3_upload:
+		var payload S3UploadConfig
+		config.Config.Unmarshal(&payload)
+		return NewS3Upload(&payload)
 	default:
 		return nil, fmt.Errorf("unknown Task type %v", config.Type)
 	}

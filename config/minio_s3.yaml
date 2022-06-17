@@ -1,0 +1,12 @@
+---
+worker_count: 3
+tasks:
+  - type: s3_upload
+    config:
+      filename: /home/vsokolov/tmp/1/file.data
+      bucket: testbucket
+      name_in_bucket: just/uploaded.data
+      access_key_id: minio
+      secret_access_key: minio123
+      region:  us-east-1
+      endpoint: http://localhost:9000

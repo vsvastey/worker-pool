@@ -10,7 +10,7 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configFilename, "config", "", "configuration")
+	flag.StringVar(&configFilename, "config", "", "configuration filename")
 }
 
 func main() {
