@@ -7,9 +7,9 @@ import (
 )
 
 type ProgressBar struct {
-	cur int
+	cur     int
 	caption string
-	mu sync.Mutex
+	mu      sync.Mutex
 }
 
 func NewProgressBar() *ProgressBar {

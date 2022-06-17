@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 )
 
 type Config struct {
@@ -16,7 +17,7 @@ type Config struct {
 func getConfigFromFile(filename string) (*Config, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, errors.Wrap(err, fmt.Sprintf("read file %s", filename))
+		return nil, errors.Wrapf(err, "read file %s", filename)
 	}
 	var config Config
 	err = yaml.Unmarshal(data, &config)

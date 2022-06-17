@@ -2,7 +2,8 @@ package task
 
 import (
 	"fmt"
-	"github.com/Vastey/worker-pool/internal/yaml_rawmessage"
+
+	"github.com/Vastey/worker-pool/internal/yamlrawmessage"
 )
 
 const (
@@ -12,8 +13,8 @@ const (
 )
 
 type Config struct {
-	Type   string                         `yaml:"type"`
-	Config yaml_rawmessage.YAMLRawMessage `yaml:"config"`
+	Type   string                        `yaml:"type"`
+	Config yamlrawmessage.YAMLRawMessage `yaml:"config"`
 }
 
 type Factory interface {

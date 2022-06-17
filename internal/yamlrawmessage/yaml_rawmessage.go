@@ -1,4 +1,4 @@
-package yaml_rawmessage
+package yamlrawmessage
 
 type YAMLRawMessage struct {
 	unmarshal func(interface{}) error

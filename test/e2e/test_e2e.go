@@ -64,15 +64,15 @@ func main() {
 	}
 
 	// check the s3 upload job
-	//aws --no-verify-ssl --endpoint-url http://localhost:9000 s3 cp s3://testbucket/just/uploaded.data downloaded.data
-	// download from s3
+
 	os.Setenv("AWS_ACCESS_KEY_ID", "minio")
 	os.Setenv("AWS_SECRET_ACCESS_KEY", "minio123")
+	// download from s3
 	runShellCommand("aws", "--endpoint-url", "http://minio:9000",
 		"s3", "cp", "s3://testbucket/e2e/test/uploaded.data", fromS3)
 	hashS3Dst := getMD5(fromS3)
 	if hashS3Dst != hashS3Src {
-		log.Fatalln("Copy file task failed")
+		log.Fatalln("S3 upload task failed")
 	}
 
 	log.Print("End-to-end test passed")
