@@ -1,9 +1,10 @@
 package task
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
-	"testing"
 )
 
 func TestCreateSleepTask(t *testing.T) {
@@ -18,7 +19,7 @@ config:
 
 	task, err := df.CreateTask(&taskConfig)
 	assert.Nil(t, err)
-	assert.Equal(t, "sleep 25s", task.Name())
+	assert.Equal(t, "sleep 25s", task.Caption())
 }
 
 func TestCreateCopyFileTask(t *testing.T) {
@@ -35,5 +36,5 @@ config:
 
 	task, err := df.CreateTask(&taskConfig)
 	assert.Nil(t, err)
-	assert.Equal(t, "copy file.dat", task.Name())
+	assert.Equal(t, "copy file.dat", task.Caption())
 }

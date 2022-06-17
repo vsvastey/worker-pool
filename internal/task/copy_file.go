@@ -26,7 +26,7 @@ func NewCopyFileTask(config *CopyFileTaskConfig) (*CopyFileTask, error) {
 	}, nil
 }
 
-func (cf CopyFileTask) Name() string {
+func (cf CopyFileTask) Caption() string {
 	return fmt.Sprintf("copy %s", filepath.Base(cf.src))
 }
 

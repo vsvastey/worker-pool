@@ -24,7 +24,7 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 	defer ctrl.Finish()
 
 	task1 := task.NewMockTask(ctrl)
-	task1.EXPECT().Name().Return("task1").Times(1)
+	task1.EXPECT().Caption().Return("task1").Times(1)
 	task1.EXPECT().Do().DoAndReturn(func() <-chan task.Status {
 		ch := make(chan task.Status)
 		go func() {

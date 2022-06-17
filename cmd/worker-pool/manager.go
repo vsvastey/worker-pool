@@ -39,11 +39,14 @@ func NewManager(taskFactory task.Factory) *Manager {
 	}
 }
 
+// AddTask adds a Task to the Task Queue
 func (m *Manager) AddTask(taskConfig *task.Config) error {
 	m.taskConfigQueue.Enqueue(taskConfig)
 	return nil
 }
 
+// AddWorker creates a new worker and ties it with a progress bar
+// that will display current status of the worker
 func (m *Manager) AddWorker(ctx context.Context) error {
 	w, err := worker.NewSimpleWorker(util.RandomString(5), m.taskFactory, m.taskConfigChan)
 	if err != nil {
@@ -59,6 +62,7 @@ func (m *Manager) AddWorker(ctx context.Context) error {
 	return nil
 }
 
+// Run starts main Task processing cycle
 func (m *Manager) Run() {
 	taskConfig := m.taskConfigQueue.Dequeue()
 	for taskConfig != nil {
@@ -70,6 +74,7 @@ func (m *Manager) Run() {
 	m.done <- struct{}{}
 }
 
+// ShowProgress implements multiline printing magic
 func (m *Manager) ShowProgress() {
 	for i := 0; i < len(m.wps); i++ {
 		fmt.Println(m.wps[i].pb.Draw())

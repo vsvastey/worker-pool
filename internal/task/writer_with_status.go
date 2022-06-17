@@ -5,6 +5,9 @@ import (
 	"sync"
 )
 
+// WriterWithStatus is a Writer interface implementation that
+// wraps an already existing Writer and reports to a statusChan channel
+// how much data (in percent) has already been written
 type WriterWithStatus struct {
 	wp         io.Writer
 	written    int64

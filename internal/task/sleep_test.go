@@ -1,9 +1,10 @@
 package task
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSleepTaskWorksAtLeastAsLongAsInterval(t *testing.T) {
@@ -46,6 +47,6 @@ func TestSleepTaskHasName(t *testing.T) {
 	task, err := NewSleepTask(&config)
 	assert.Nil(t, err)
 
-	name := task.Name()
+	name := task.Caption()
 	assert.Equal(t, "sleep 100ms", name)
 }

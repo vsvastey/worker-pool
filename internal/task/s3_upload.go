@@ -12,17 +12,26 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type S3UploadConfig struct {
-	Filename     string `yaml:"filename"`
-	Bucket       string `yaml:"bucket"`
+// S3UploadTaskConfig is configuration of S3UploadTask
+type S3UploadTaskConfig struct {
+	// Caption of file to upload
+	Filename string `yaml:"filename"`
+	// Bucket to which the file should be uploaded
+	Bucket string `yaml:"bucket"`
+	// Caption that the file should have in the bucket
 	NameInBucket string `yaml:"name_in_bucket"`
 	// TODO: move AWS connection parameters to an dedicated structure
-	AccessKeyId     string `yaml:"access_key_id"`
+	// S3 connection parameter
+	AccessKeyId string `yaml:"access_key_id"`
+	// S3 connection parameter
 	SecretAccessKey string `yaml:"secret_access_key"`
-	Region          string `yaml:"region"`
-	Endpoint        string `yaml:"endpoint"`
+	// S3 connection parameter
+	Region string `yaml:"region"`
+	// S3 connection parameter
+	Endpoint string `yaml:"endpoint"`
 }
 
+// S3UploadTask is a Task that uploads provided file to S3
 type S3UploadTask struct {
 	filename        string
 	bucket          string
@@ -33,7 +42,8 @@ type S3UploadTask struct {
 	endpoint        string
 }
 
-func NewS3Upload(config *S3UploadConfig) (*S3UploadTask, error) {
+// NewS3UploadTask is a constructor for S3UploadTask
+func NewS3UploadTask(config *S3UploadTaskConfig) (*S3UploadTask, error) {
 	return &S3UploadTask{
 		filename:        config.Filename,
 		bucket:          config.Bucket,
@@ -45,7 +55,7 @@ func NewS3Upload(config *S3UploadConfig) (*S3UploadTask, error) {
 	}, nil
 }
 
-func (ut S3UploadTask) Name() string {
+func (ut S3UploadTask) Caption() string {
 	return fmt.Sprintf("s3 %s", filepath.Base(ut.filename))
 }
 

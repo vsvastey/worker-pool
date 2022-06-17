@@ -5,6 +5,9 @@ import (
 	"sync"
 )
 
+// ReaderWithStatus is a Reader interface implementation that
+// wraps an already existing Reader and reports to a statusChan channel
+// how much data (in percent) has already been read
 type ReaderWithStatus struct {
 	reader     io.Reader
 	read       int64

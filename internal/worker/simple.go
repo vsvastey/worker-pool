@@ -53,7 +53,7 @@ func (sw *SimpleWorker) runTask(taskConfig *task.Config) error {
 	}
 	workerStatus := Status{
 		ID:       sw.ID,
-		Task:     t.Name(),
+		Task:     t.Caption(),
 		Progress: 0,
 	}
 	sw.statusChan <- workerStatus

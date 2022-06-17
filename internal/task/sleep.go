@@ -42,6 +42,6 @@ func (st *SleepTask) Do() <-chan Status {
 	return res
 }
 
-func (st SleepTask) Name() string {
+func (st SleepTask) Caption() string {
 	return fmt.Sprintf("sleep %v", st.total)
 }
