@@ -1,9 +1,11 @@
 package worker
 
 import (
+	"context"
+	"sync"
+
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/pkg/errors"
-	"sync"
 )
 
 type SimpleWorker struct {
@@ -64,7 +66,7 @@ func (sw *SimpleWorker) runTask(taskConfig *task.Config) error {
 	return nil
 }
 
-func (sw *SimpleWorker) Work(wg *sync.WaitGroup) {
+func (sw *SimpleWorker) Work(ctx context.Context, wg *sync.WaitGroup) {
 	for {
 		select {
 		case t := <-sw.taskConfigs:
@@ -76,6 +78,8 @@ func (sw *SimpleWorker) Work(wg *sync.WaitGroup) {
 				wg.Done()
 			}
 		case <-sw.stopChan:
+			return
+		case <-ctx.Done():
 			return
 		}
 	}

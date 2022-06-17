@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"flag"
+
 	"github.com/Vastey/worker-pool/internal/task"
 )
 
@@ -15,6 +17,7 @@ func init() {
 
 func main() {
 	flag.Parse()
+	ctx := context.Background()
 
 	config, err := getConfigFromFile(configFilename)
 	if err != nil {
@@ -24,7 +27,7 @@ func main() {
 	manager := NewManager(&task.DefaultFactory{})
 
 	for i := 0; i < config.WorkerCount; i++ {
-		err := manager.AddWorker()
+		err := manager.AddWorker(ctx)
 		if err != nil {
 			// TODO: log
 		}

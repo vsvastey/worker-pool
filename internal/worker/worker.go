@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"context"
 	"sync"
 )
 
@@ -12,6 +13,6 @@ type Status struct {
 
 type Worker interface {
 	Status() <-chan Status
-	Work(wg *sync.WaitGroup)
+	Work(ctx context.Context, wg *sync.WaitGroup)
 	Stop()
 }

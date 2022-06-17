@@ -1,13 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"sync"
+
 	"github.com/Vastey/worker-pool/internal/progressbar"
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/Vastey/worker-pool/internal/taskconfigqueue"
 	"github.com/Vastey/worker-pool/internal/util"
 	"github.com/Vastey/worker-pool/internal/worker"
-	"sync"
 )
 
 type WorkerAndProgress struct {
@@ -40,7 +42,7 @@ func (m *Manager) AddTask(taskConfig *task.Config) error {
 	return nil
 }
 
-func (m *Manager) AddWorker() error {
+func (m *Manager) AddWorker(ctx context.Context) error {
 	w, err := worker.NewSimpleWorker(util.RandomString(5), m.taskFactory, m.taskConfigChan)
 	if err != nil {
 		// TODO: log
@@ -52,7 +54,7 @@ func (m *Manager) AddWorker() error {
 		worker: w,
 		pb:     pb,
 	})
-	go w.Work(m.wg)
+	go w.Work(ctx, m.wg)
 	return nil
 }
 

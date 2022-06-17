@@ -1,11 +1,13 @@
 package worker
 
 import (
+	"context"
+	"sync"
+	"testing"
+
 	"github.com/Vastey/worker-pool/internal/task"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"sync"
-	"testing"
 )
 
 type MockTaskFactory struct {
@@ -17,6 +19,7 @@ func (mtf MockTaskFactory) CreateTask(taskConfig *task.Config) (task.Task, error
 }
 
 func TestSimpleWorkerRunsTask(t *testing.T) {
+	ctx := context.TODO()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -43,7 +46,7 @@ func TestSimpleWorkerRunsTask(t *testing.T) {
 	assert.Nil(t, err)
 
 	wg.Add(1)
-	go w.Work(&wg)
+	go w.Work(ctx, &wg)
 
 	go func() {
 		taskConfigChan <- &task.Config{}
