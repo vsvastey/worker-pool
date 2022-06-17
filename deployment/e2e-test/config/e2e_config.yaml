@@ -1,0 +1,7 @@
+---
+worker_count: 3
+tasks:
+  - type: copy_file
+    config:
+      source: /src/file1
+      destination: /src/file2

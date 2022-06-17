@@ -1,0 +1,36 @@
+version: "2"
+
+services:
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - "MINIO_ACCESS_KEY=minio"
+      - "MINIO_SECRET_KEY=minio123"
+    command: server /data -console-address ":9001"
+
+
+  createtestbucket:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host rm local;
+      /usr/bin/mc config host add --quiet --api s3v4 local http://minio:9000 minio minio123;
+      /usr/bin/mc rb --force local/testbucket/;
+      /usr/bin/mc mb --quiet local/testbucket/;
+      /usr/bin/mc policy set public local/testbucket;
+      "
+
+  test:
+    build:
+      context: ../..
+      dockerfile: test/Dockerfile
+    depends_on:
+      - createtestbucket
+    volumes:
+      - ./config:/etc/worker_pool/
+    command: bin/e2e-test
